@@ -1,11 +1,14 @@
 const BASE_URL = "https://movie-list.alphacamp.io";
 const INDEX_URL = BASE_URL + "/api/v1/movies/";
 const POSTER_URL = BASE_URL + "/posters/";
+const MOVIE_PER_PAGE = 12;
 
 const dataPanel = document.querySelector("#data-panel");
 const serchForm = document.querySelector("#search-form");
 const searchInput = document.querySelector("#search-input");
+const paginator = document.querySelector("#paginator");
 const movies = [];
+let filterMovies = [];
 
 function renderMovieList(data) {
   let rawHTML = "";
@@ -48,7 +51,6 @@ function showMovieModal(id) {
 }
 
 function addToFavorite(id) {
-  console.log(id);
   const favoriteList = JSON.parse(localStorage.getItem("favoriteMovies")) || [];
   const movie = movies.find((movie) => movie.id === id);
   if (favoriteList.some((movie) => movie.id === id)) {
@@ -56,6 +58,21 @@ function addToFavorite(id) {
   }
   favoriteList.push(movie);
   localStorage.setItem("favoriteMovies", JSON.stringify(favoriteList));
+}
+
+function getMoviesByPage(page) {
+  const startIndex = (page - 1) * MOVIE_PER_PAGE;
+  const data = filterMovies.length ? filterMovies : movies;
+  return data.slice(startIndex, startIndex + MOVIE_PER_PAGE);
+}
+
+function renderPaginator(amount) {
+  const numberOfPages = Math.ceil(amount / MOVIE_PER_PAGE);
+  let rawHTML = "";
+  for (let page = 1; page <= numberOfPages; page++) {
+    rawHTML += `<li class="page-item"><a class="page-link" href="#" data-page=${page}>${page}</a></li>`;
+  }
+  paginator.innerHTML = rawHTML;
 }
 
 dataPanel.addEventListener("click", function onPanelClicked(event) {
@@ -69,7 +86,6 @@ dataPanel.addEventListener("click", function onPanelClicked(event) {
 serchForm.addEventListener("submit", function onSearchFormSubmitted(event) {
   event.preventDefault();
   const keyword = searchInput.value.trim().toLowerCase();
-  let filterMovies = [];
 
   filterMovies = movies.filter((movie) =>
     movie.title.toLowerCase().includes(keyword)
@@ -78,15 +94,23 @@ serchForm.addEventListener("submit", function onSearchFormSubmitted(event) {
   if (filterMovies.length === 0) {
     return alert(`您輸入的關鍵字：${keyword} 沒有符合條件的電影`);
   }
+  renderPaginator(filterMovies.length);
+  renderMovieList(getMoviesByPage(1));
+});
 
-  renderMovieList(filterMovies);
+paginator.addEventListener("click", function onPaginatorClicked(event) {
+  if (event.target.tagName !== "A") return;
+
+  const page = Number(event.target.dataset.page);
+  renderMovieList(getMoviesByPage(page));
 });
 
 axios
   .get(INDEX_URL)
   .then((response) => {
     movies.push(...response.data.results);
-    renderMovieList(movies);
+    renderPaginator(movies.length);
+    renderMovieList(getMoviesByPage(1));
   })
   .catch((err) => {
     console.log(err);
