@@ -3,9 +3,7 @@ const INDEX_URL = BASE_URL + "/api/v1/movies/";
 const POSTER_URL = BASE_URL + "/posters/";
 
 const dataPanel = document.querySelector("#data-panel");
-const serchForm = document.querySelector("#search-form");
-const searchInput = document.querySelector("#search-input");
-const movies = [];
+const movies = JSON.parse(localStorage.getItem("favoriteMovies"));
 
 function renderMovieList(data) {
   let rawHTML = "";
@@ -66,28 +64,4 @@ dataPanel.addEventListener("click", function onPanelClicked(event) {
   }
 });
 
-serchForm.addEventListener("submit", function onSearchFormSubmitted(event) {
-  event.preventDefault();
-  const keyword = searchInput.value.trim().toLowerCase();
-  let filterMovies = [];
-
-  filterMovies = movies.filter((movie) =>
-    movie.title.toLowerCase().includes(keyword)
-  );
-
-  if (filterMovies.length === 0) {
-    return alert(`您輸入的關鍵字：${keyword} 沒有符合條件的電影`);
-  }
-
-  renderMovieList(filterMovies);
-});
-
-axios
-  .get(INDEX_URL)
-  .then((response) => {
-    movies.push(...response.data.results);
-    renderMovieList(movies);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+renderMovieList(movies);
