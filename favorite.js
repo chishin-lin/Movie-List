@@ -16,9 +16,9 @@ function renderMovieList(data) {
           <h5 class="card-title">${item.title}</h5>
           <button class="btn btn-primary btn-show-movie" data-toggle="modal" 
           data-target="#movie-modal" data-id="${item.id}">More</button>
-          <button class="btn btn-info btn-add-favorite" data-id="${
+          <button class="btn btn-danger btn-remove-favorite" data-id="${
             item.id
-          }">+</button>
+          }">X</button>
         </div>
       </div>
     </div>
@@ -45,22 +45,23 @@ function showMovieModal(id) {
   });
 }
 
-function addToFavorite(id) {
-  console.log(id);
-  const favoriteList = JSON.parse(localStorage.getItem("favoriteMovies")) || [];
-  const movie = movies.find((movie) => movie.id === id);
-  if (favoriteList.some((movie) => movie.id === id)) {
-    return alert(`${movie.name}此電影已經在收藏清單中！`);
-  }
-  favoriteList.push(movie);
-  localStorage.setItem("favoriteMovies", JSON.stringify(favoriteList));
+function removeFromFavorite(id) {
+  if (!movies) return;
+  const movieIndex = movies.findIndex((movie) => movie.id === id);
+  if (movieIndex === -1) return;
+
+  movies.splice(movieIndex, 1);
+
+  localStorage.setItem("favoriteMovies", JSON.stringify(movies));
+
+  renderMovieList(movies);
 }
 
 dataPanel.addEventListener("click", function onPanelClicked(event) {
   if (event.target.matches(".btn-show-movie")) {
     showMovieModal(Number(event.target.dataset.id));
-  } else if (event.target.matches(".btn-add-favorite")) {
-    addToFavorite(Number(event.target.dataset.id));
+  } else if (event.target.matches(".btn-remove-favorite")) {
+    removeFromFavorite(Number(event.target.dataset.id));
   }
 });
 
