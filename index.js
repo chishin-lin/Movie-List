@@ -7,17 +7,20 @@ const dataPanel = document.querySelector("#data-panel");
 const serchForm = document.querySelector("#search-form");
 const searchInput = document.querySelector("#search-input");
 const paginator = document.querySelector("#paginator");
+const icon = document.querySelector("#icon");
 const movies = [];
 let filterMovies = [];
+let cardModel = true;
+let page = 1;
 
 function renderMovieList(data) {
   let rawHTML = "";
   data.forEach((item) => {
-    rawHTML += `<div class="col-sm-3">
-    <div class="mb-2">
-      <div class="card" style="width: 18rem">
+    if (cardModel) {
+      rawHTML += `<div class="grid col-sm-3">
+    <div class="card mb-2">
         <img src="${POSTER_URL + item.image}" class="card-img-top" alt="..." />
-        <div class="card-body">
+          <div class="card-body">
           <h5 class="card-title">${item.title}</h5>
           <button class="btn btn-primary btn-show-movie" data-toggle="modal" 
           data-target="#movie-modal" data-id="${item.id}">More</button>
@@ -26,8 +29,20 @@ function renderMovieList(data) {
           }">+</button>
         </div>
       </div>
+  </div>`;
+    } else {
+      rawHTML += `  <div class="list col-12 justify-content-between">
+      <div class="row align-items-center" style="border-top: 1px #D0D0D0 solid">
+        <div class="card-body col-9" >
+          <h5>${item.title}</h5>
+        </div>
+      <div class="card-buttons col-3">
+        <button class="btn btn-primary btn-show-movie" data-toggle="modal" data-target="#show-movie-modal" data-id="${item.id}">More</button>
+        <button class="btn btn-info btn-add-favorite" data-id="${item.id}">+</button>
+     </div>
     </div>
   </div>`;
+    }
   });
   dataPanel.innerHTML = rawHTML;
 }
@@ -100,8 +115,12 @@ serchForm.addEventListener("submit", function onSearchFormSubmitted(event) {
 
 paginator.addEventListener("click", function onPaginatorClicked(event) {
   if (event.target.tagName !== "A") return;
+  page = Number(event.target.dataset.page);
+  renderMovieList(getMoviesByPage(page));
+});
 
-  const page = Number(event.target.dataset.page);
+icon.addEventListener("click", function onIconClicked(event) {
+  cardModel = event.target.matches(".render-card");
   renderMovieList(getMoviesByPage(page));
 });
 
